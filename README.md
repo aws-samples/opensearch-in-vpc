@@ -55,6 +55,8 @@ Prerequisites:
         export AWS_SECRET_ACCESS_KEY=...
         ```
 
+To obtain this code and deploy it, you can [clone this repository](https://git-scm.com/docs/git-clone) to a directory of your choice.
+
 Example module can be deployed by navigating to its directory:
 
 ```bash
@@ -66,12 +68,6 @@ and executing following commands:
 ```bash
 terraform init
 terraform apply
-```
-
-To remove the deployed resources, run:
-
-```bash
-terraform destroy
 ```
 
 
@@ -101,6 +97,15 @@ To access the OpenSearch domain through its UI, follow these steps:
 Once you have the IP address of the proxy instance, you can navigate to it through the browser. E.g. if the IP address is `xxx.xxx.xxx.xxx`, navigate to `https://xxx.xxx.xxx.xxx` in the browser.
 
 Please be aware that the certificate used inside the proxy is a self-signed one and generated on the fly during the deployment of the proxy machine, which might result in a warning from your browser. In the real-world scenario, you should consider using a properly signed certificate, which you can install by modifying [proxy_instance_init_script.sh](opensearch-in-vpc-module/proxy_instance_init_script.sh) script.
+
+
+## Cleanup
+
+To remove the deployed resources, make sure you're in the `example` directory and run:
+
+```bash
+terraform destroy
+```
 
 
 ## Planning for Production Workloads

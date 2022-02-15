@@ -35,11 +35,11 @@ resource "aws_security_group_rule" "opensearch" {
   from_port = 443
   to_port = 443
   protocol = "tcp"
-  cidr_blocks = data.aws_subnet.opensearch[count.index].cidr_block == null ? [] : [data.aws_subnet.opensearch[count.index].cidr_block]
-  ipv6_cidr_blocks = data.aws_subnet.opensearch[count.index].ipv6_cidr_block == null ? [] : [data.aws_subnet.opensearch[count.index].ipv6_cidr_block]
+  cidr_blocks = compact([data.aws_subnet.opensearch[count.index].cidr_block])
+  ipv6_cidr_blocks = compact([data.aws_subnet.opensearch[count.index].ipv6_cidr_block])
 }
 
-resource "aws_security_group_rule" "elasticsearch_proxy" {
+resource "aws_security_group_rule" "opensearch_proxy" {
   description = "Proxy"
   security_group_id = aws_security_group.opensearch.id
 

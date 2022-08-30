@@ -3,14 +3,8 @@ Before creating the first OpenSearch cluster, ensure the service linked role exi
 If it doesn't, it can be created using following AWS CLI command:
 $ aws iam create-service-linked-role --aws-service-name es.amazonaws.com
 */
-resource "null_resource" "aos_service_linked_role" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command = <<-COMMAND
-      aws iam create-service-linked-role --aws-service-name es.amazonaws.com
-    COMMAND
-    on_failure = continue
-  }
+resource "aws_iam_service_linked_role" "aos_service_linked_role" {
+  aws_service_name = "es.amazonaws.com"
 }
 
 data "aws_iam_role" "aos_service_linked_role" {
@@ -22,15 +16,15 @@ data "aws_iam_role" "aos_service_linked_role" {
 }
 
 resource "aws_elasticsearch_domain" "aos" {
-  domain_name = var.aos_domain_name
+  domain_name           = var.aos_domain_name
   elasticsearch_version = var.opensearch_version
 
   cluster_config {
-    instance_count = var.aos_data_instance_count
-    instance_type = var.aos_data_instance_type
+    instance_count           = var.aos_data_instance_count
+    instance_type            = var.aos_data_instance_type
     dedicated_master_enabled = var.aos_master_instance_count > 0
-    dedicated_master_count = var.aos_master_instance_count
-    dedicated_master_type = var.aos_master_instance_type
+    dedicated_master_count   = var.aos_master_instance_count
+    dedicated_master_type    = var.aos_master_instance_type
   }
 
   ebs_options {
@@ -39,7 +33,7 @@ resource "aws_elasticsearch_domain" "aos" {
   }
 
   vpc_options {
-    subnet_ids = var.aos_domain_subnet_ids
+    subnet_ids         = var.aos_domain_subnet_ids
     security_group_ids = [aws_security_group.opensearch.id]
   }
 
@@ -52,17 +46,17 @@ resource "aws_elasticsearch_domain" "aos" {
   }
 
   domain_endpoint_options {
-    enforce_https = true
+    enforce_https       = true
     tls_security_policy = "Policy-Min-TLS-1-0-2019-07"
   }
 
   access_policies = data.aws_iam_policy_document.aos_access_policies.json
 
   cognito_options {
-    enabled = true
-    user_pool_id = aws_cognito_user_pool.aos_pool.id
+    enabled          = true
+    user_pool_id     = aws_cognito_user_pool.aos_pool.id
     identity_pool_id = aws_cognito_identity_pool.aos_pool.id
-    role_arn = aws_iam_role.cognito_for_aos.arn
+    role_arn         = aws_iam_role.cognito_for_aos.arn
   }
 
   /*
@@ -71,7 +65,7 @@ resource "aws_elasticsearch_domain" "aos" {
   */
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command = <<-COMMAND
+    command     = <<-COMMAND
       sleep 10 # Give some time for the endpoint to become available
       aws cognito-idp update-user-pool-client \
         --user-pool-id ${aws_cognito_user_pool.aos_pool.id} \
@@ -88,17 +82,17 @@ resource "aws_elasticsearch_domain" "aos" {
 
   log_publishing_options {
     cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
-    log_type = "INDEX_SLOW_LOGS"
+    log_type                 = "INDEX_SLOW_LOGS"
   }
 
   log_publishing_options {
     cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
-    log_type = "SEARCH_SLOW_LOGS"
+    log_type                 = "SEARCH_SLOW_LOGS"
   }
 
   log_publishing_options {
     cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
-    log_type = "ES_APPLICATION_LOGS"
+    log_type                 = "ES_APPLICATION_LOGS"
   }
 
   tags = var.tags
@@ -110,7 +104,7 @@ data "aws_iam_policy_document" "aos_access_policies" {
   statement {
     effect = "Allow"
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = [aws_iam_role.aos_cognito_authenticated.arn]
     }
     actions = [
@@ -131,7 +125,7 @@ resource "aws_cloudwatch_log_group" "opensearch_logs" {
 }
 
 resource "aws_cloudwatch_log_resource_policy" "opensearch_logs" {
-  policy_name = "opensearch-${var.aos_domain_name}"
+  policy_name     = "opensearch-${var.aos_domain_name}"
   policy_document = data.aws_iam_policy_document.opensearch_logs.json
 }
 
@@ -139,7 +133,7 @@ data "aws_iam_policy_document" "opensearch_logs" {
   statement {
     effect = "Allow"
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["es.amazonaws.com"]
     }
     actions = [
